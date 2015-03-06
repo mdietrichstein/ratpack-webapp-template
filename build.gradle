@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'io.ratpack:ratpack-gradle:0.9.14'
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+apply plugin: 'io.ratpack.ratpack-java'
+
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+mainClassName = 'template.Application'
+
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots/' }
+}
+
+dependencies {
+    compile 'org.aeonbits.owner:owner-java8:1.0.6'
+
+    compile 'org.slf4j:slf4j-api:1.7.10'
+    compile 'ch.qos.logback:logback-classic:1.1.2'
+
+    compile ratpack.dependency('guice')
+    compile ratpack.dependency('jackson')
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.3'
+}
+
+
+task runApp(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    if(project.hasProperty('configDir')) {
+      classpath = files(configDir) + classpath
+    }
+
+    main mainClassName
+    workingDir '.'
+}

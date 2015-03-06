@@ -1,0 +1,28 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Configuration files
+/conf/
+
+# oh-my-zsh
+.gradletasknamecache
+
+# IDE files
+.idea/
+*.iml
+*.eml
+*.ipr
+*.iws
+/.settings/
+
+# Generated files
+.gradle/
+build
+/bin/
+/tmp/
+/work/
+/dist/
+/debian/control
+*.log
+.ant_targets
