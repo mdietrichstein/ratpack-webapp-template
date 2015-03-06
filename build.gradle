@@ -38,7 +38,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
+    gradleVersion = '2.3'
 }
 
 
@@ -46,7 +46,7 @@ task runApp(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     if(project.hasProperty('configDir')) {
-      classpath = files(configDir) + classpath
+        classpath = files(configDir) + classpath
     }
 
     main mainClassName

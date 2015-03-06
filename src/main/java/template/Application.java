@@ -19,75 +19,71 @@ import javax.inject.Inject;
 import java.nio.file.Paths;
 
 public class Application {
-	private static final Logger log = LoggerFactory.getLogger(Application.class);
+    private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-	public static void main(String[] args) {
-		Injector injector = com.google.inject.Guice.createInjector(new ApplicationModule());
-		Application app = injector.getInstance(Application.class);
+    public static void main(String[] args) {
+        Injector injector = com.google.inject.Guice.createInjector(new ApplicationModule());
+        Application app = injector.getInstance(Application.class);
         app.run();
-	}
+    }
 
-	// impl
+    // impl
 
-	private final ApplicationConfig applicationConfig;
+    private final ApplicationConfig applicationConfig;
 
-	@Inject
-	public Application(ApplicationConfig applicationConfig) {
-		this.applicationConfig = applicationConfig;
-	}
+    @Inject
+    public Application(ApplicationConfig applicationConfig) {
+        this.applicationConfig = applicationConfig;
+    }
 
-	public void run() {
-		startWebServer();
-		startApiServer();
-	}
+    public void run() {
+        startWebServer();
+        startApiServer();
+    }
 
-	private void startWebServer() {
-		ServerConfig.Builder serverConfig = DefaultServerConfigBuilder
-				.baseDir(ServerEnvironment.env(), Paths.get(applicationConfig.webappBaseDir()))
-				.development(applicationConfig.isDevMode())
-				.port(applicationConfig.webappPort());
+    private void startWebServer() {
+        ServerConfig.Builder serverConfig =
+            DefaultServerConfigBuilder
+                .baseDir(ServerEnvironment.env(), Paths.get(applicationConfig.webappBaseDir()))
+                .development(applicationConfig.isDevMode())
+                .port(applicationConfig.webappPort());
 
-		try {
-			RatpackServer server = RatpackServer.of(definition -> definition
-							.serverConfig(serverConfig)
-							.handlers(chain -> chain
-											.assets(applicationConfig.webappAssetsLocation(), applicationConfig.webappIndexFiles())
-							)
+        try {
+            RatpackServer.of(definition -> definition
+                .serverConfig(serverConfig)
+                .handlers(chain -> chain
+                    .assets(applicationConfig.webappAssetsLocation(), applicationConfig.webappIndexFiles())
+                )
+            ).start();
+        } catch (Exception e) {
+            log.error("unable to start webserver", e);
+            throw Throwables.propagate(e);
+        }
+    }
 
-			);
+    private void startApiServer() {
+        ServerConfig.Builder serverConfig =
+            DefaultServerConfigBuilder
+                .noBaseDir(ServerEnvironment.env())
+                .development(applicationConfig.isDevMode())
+                .port(applicationConfig.apiPort());
 
-			server.start();
-		} catch (Exception e) {
-			log.error("unable to start webserver", e);
-			throw Throwables.propagate(e);
-		}
-	}
-
-	private void startApiServer() {
-		ServerConfig.Builder serverConfig = DefaultServerConfigBuilder
-				.noBaseDir(ServerEnvironment.env())
-				.development(applicationConfig.isDevMode())
-				.port(applicationConfig.apiPort());
-
-		try {
-			RatpackServer server = RatpackServer.of(definition -> definition
-							.serverConfig(serverConfig)
-							.registry(Guice.registry(b -> {
-								b.add(new JacksonModule());
-								b.add(new ApiHandlerModule());
-							}))
-							.handlers(chain -> chain
-											.prefix("api/v1",
-													api -> api.get("hello", HelloWorldApiHander.class)
-											)
-							)
-
-			);
-
-			server.start();
-		} catch (Exception e) {
-			log.error("unable to start api server", e);
-			throw Throwables.propagate(e);
-		}
-	}
+        try {
+            RatpackServer.of(definition -> definition
+                .serverConfig(serverConfig)
+                .registry(Guice.registry(b -> {
+                    b.add(new JacksonModule());
+                    b.add(new ApiHandlerModule());
+                }))
+                .handlers(chain -> chain
+                    .prefix("api/v1", api ->
+                        api.get("hello", HelloWorldApiHander.class)
+                    )
+                )
+            ).start();
+        } catch (Exception e) {
+            log.error("unable to start api server", e);
+            throw Throwables.propagate(e);
+        }
+    }
 }
