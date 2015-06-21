@@ -8,7 +8,7 @@ import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
+import ratpack.server.internal.ServerEnvironment;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import template.guice.ApplicationModule;
 import template.web.ratpack.handler.api.ApplicationConfig;
