@@ -5,17 +5,17 @@ import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.guice.Guice;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.internal.ServerEnvironment;
-import ratpack.server.internal.DefaultServerConfigBuilder;
+import ratpack.server.ServerConfigBuilder;
 import template.guice.ApplicationModule;
 import template.web.ratpack.handler.api.ApplicationConfig;
-import template.web.ratpack.handler.api.HelloWorldApiHander;
+import template.web.ratpack.handler.api.HelloWorldApiHandler;
 import template.web.ratpack.handler.api.guice.ApiHandlerModule;
 
 import javax.inject.Inject;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Application {
@@ -42,9 +42,11 @@ public class Application {
     }
 
     private void startWebServer() {
-        ServerConfig.Builder serverConfig =
-            DefaultServerConfigBuilder
-                .baseDir(ServerEnvironment.env(), Paths.get(applicationConfig.webappBaseDir()))
+        Path baseAppDir = Paths.get(".", applicationConfig.webappBaseDir()).toAbsolutePath().normalize();
+
+        ServerConfigBuilder serverConfig =
+            ServerConfig.builder()
+                .baseDir(baseAppDir)
                 .development(applicationConfig.isDevMode())
                 .port(applicationConfig.webappPort());
 
@@ -52,7 +54,7 @@ public class Application {
             RatpackServer.of(definition -> definition
                 .serverConfig(serverConfig)
                 .handlers(chain -> chain
-                    .assets(applicationConfig.webappAssetsLocation(), applicationConfig.webappIndexFiles())
+                    .files(f -> f.dir(applicationConfig.webappAssetsLocation()).indexFiles(applicationConfig.webappIndexFiles()))
                 )
             ).start();
         } catch (Exception e) {
@@ -62,9 +64,8 @@ public class Application {
     }
 
     private void startApiServer() {
-        ServerConfig.Builder serverConfig =
-            DefaultServerConfigBuilder
-                .noBaseDir(ServerEnvironment.env())
+        ServerConfigBuilder serverConfig =
+                ServerConfig.builder()
                 .development(applicationConfig.isDevMode())
                 .port(applicationConfig.apiPort());
 
@@ -72,12 +73,12 @@ public class Application {
             RatpackServer.of(definition -> definition
                 .serverConfig(serverConfig)
                 .registry(Guice.registry(b -> {
-                    b.add(new JacksonModule());
-                    b.add(new ApiHandlerModule());
+                    b.module(JacksonModule.class);
+                    b.module(ApiHandlerModule.class);
                 }))
                 .handlers(chain -> chain
                     .prefix("api/v1", api ->
-                        api.get("hello", HelloWorldApiHander.class)
+                        api.get("hello", HelloWorldApiHandler.class)
                     )
                 )
             ).start();
