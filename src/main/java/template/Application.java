@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.guice.Guice;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -73,7 +72,6 @@ public class Application {
             RatpackServer.of(definition -> definition
                 .serverConfig(serverConfig)
                 .registry(Guice.registry(b -> {
-                    b.module(JacksonModule.class);
                     b.module(ApiHandlerModule.class);
                 }))
                 .handlers(chain -> chain
